@@ -47,10 +47,10 @@ const errorMiddleware = (err, _req, res, _next) => {
     })
   }
 
-  res.status(status).json({
-    status,
-    code,
-    message
+  res.status(Number(err.status) || 500).json({
+    status: Number(err.status) || 500,
+    code: err.code || 'INTERNAL_SERVER_ERROR',
+    message: err.message || 'Server error'
   })
 }
 
