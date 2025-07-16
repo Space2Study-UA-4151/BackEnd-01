@@ -8,6 +8,8 @@ const logger = require('~/logger/logger')
 const getUniqueFields = require('~/utils/getUniqueFields')
 
 const errorMiddleware = (err, _req, res, _next) => {
+  console.log('ERROR MIDDLEWARE:', err)
+
   const { name, status, code, message } = err
   logger.error(err)
 
@@ -47,10 +49,10 @@ const errorMiddleware = (err, _req, res, _next) => {
     })
   }
 
-  res.status(Number(err.status) || 500).json({
-    status: Number(err.status) || 500,
-    code: err.code || 'INTERNAL_SERVER_ERROR',
-    message: err.message || 'Server error'
+  return res.status(Number(status) || 500).json({
+    status: Number(status) || 500,
+    code: code || 'INTERNAL_SERVER_ERROR',
+    message: message || 'Server error'
   })
 }
 
