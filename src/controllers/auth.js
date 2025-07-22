@@ -21,7 +21,7 @@ const signup = async (req, res) => {
 
   const userData = await authService.signup(role, firstName, lastName, email, password, lang)
 
-  res.status(201).json(userData)
+  res.status(201).json({ status: 201, message: 'User registered successfully!', userData })
 }
 
 const login = async (req, res) => {

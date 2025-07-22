@@ -1,6 +1,8 @@
+const bcrypt = require('bcrypt')
 const tokenService = require('~/services/token')
 const emailService = require('~/services/email')
-const { getUserByEmail, createUser, privateUpdateUser, getUserById } = require('~/services/user')
+const UserModel = require('~/models/user')
+const { getUserByEmail, privateUpdateUser, getUserById } = require('~/services/user')
 const { createError } = require('~/utils/errorsHelper')
 const {
   EMAIL_NOT_CONFIRMED,
@@ -16,11 +18,15 @@ const {
 
 const authService = {
   signup: async (role, firstName, lastName, email, password, language) => {
-    const user = await createUser(role, firstName, lastName, email, password, language)
-
+    const userEmail = await UserModel.findOne({ email })
+    if (userEmail) {
+      throw createError(409, 'Email in use')
+    }
+    const hashedPassword = await bcrypt.hash(password, 10)
+    const user = UserModel.create({ role, firstName, lastName, email, password: hashedPassword, language })
     const confirmToken = tokenService.generateConfirmToken({ id: user._id, role })
     await tokenService.saveToken(user._id, confirmToken, CONFIRM_TOKEN)
-    await emailService.sendEmail(email, emailSubject.EMAIL_CONFIRMATION, language, { confirmToken, email, firstName })
+    // await emailService.sendEmail(email, emailSubject.EMAIL_CONFIRMATION, language, { confirmToken, email, firstName })
     return {
       userId: user._id,
       userEmail: user.email
@@ -34,7 +40,7 @@ const authService = {
       throw createError(401, USER_NOT_FOUND)
     }
 
-    const checkedPassword = (password === user.password) || isFromGoogle
+    const checkedPassword = password === user.password || isFromGoogle
 
     if (!checkedPassword) {
       throw createError(401, INCORRECT_CREDENTIALS)

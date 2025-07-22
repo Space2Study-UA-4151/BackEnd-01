@@ -2,6 +2,7 @@ require('module-alias/register')
 require('../module-aliases')
 require('~/initialization/envSetup')
 const express = require('express')
+
 const serverSetup = require('~/initialization/serverSetup')
 const logger = require('~/logger/logger')
 
