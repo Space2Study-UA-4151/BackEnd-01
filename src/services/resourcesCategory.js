@@ -23,6 +23,10 @@ const resourcesCategoryService = {
     return { count, items }
   },
   getResourcesCategoriesNames: async (match) => {
+    if (match.name) {
+      match.name = { $regex: match.name, $options: 'i' }
+    }
+
     return await ResourcesCategory.find(match).select('name').exec()
   },
 

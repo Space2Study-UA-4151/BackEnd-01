@@ -21,9 +21,16 @@ const checkForLocalDB = async () => {
 }
 
 const databaseInitialization = async () => {
-  await mongoose.connect(MONGODB_URL)
-  await checkForLocalDB()
-  logger.info('Connected to MongoDB.')
+  try {
+    await mongoose.connect(MONGODB_URL)
+    await checkForLocalDB()
+    logger.info('Connected to MongoDB.')
+    console.log('✅ Connected to MongoDB.')
+  } catch (error) {
+    logger.error('Error connecting to MongoDB:', error)
+    console.error('❌ Error connecting to MongoDB:', error)
+    throw error
+  }
 }
 
 module.exports = databaseInitialization
