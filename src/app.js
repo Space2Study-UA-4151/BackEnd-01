@@ -1,3 +1,6 @@
+require('dotenv').config({ path: require('path').resolve(__dirname, '../.env.local') })
+console.log('[DEBUG] MONGODB_URL:', process.env.MONGODB_URL)
+console.log('[DEBUG] process.cwd():', process.cwd())
 require('module-alias/register')
 require('../module-aliases')
 require('~/initialization/envSetup')

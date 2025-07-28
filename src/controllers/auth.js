@@ -1,4 +1,5 @@
 const authService = require('~/services/auth')
+
 const { oneDayInMs } = require('~/consts/auth')
 const {
   config: { COOKIE_DOMAIN }
@@ -9,7 +10,7 @@ const {
 
 const COOKIE_OPTIONS = {
   maxAge: oneDayInMs,
-  httpOnly: true,
+  // httpOnly: true,
   secure: true,
   sameSite: 'none',
   domain: COOKIE_DOMAIN
@@ -27,25 +28,44 @@ const signup = async (req, res) => {
 const login = async (req, res) => {
   const { email, password } = req.body
 
-  const tokens = await authService.login(email, password)
+  const session = await authService.login(email, password)
 
-  res.cookie(ACCESS_TOKEN, tokens.accessToken, COOKIE_OPTIONS)
-  res.cookie(REFRESH_TOKEN, tokens.refreshToken, COOKIE_OPTIONS)
+  res.cookie(ACCESS_TOKEN, session.accessToken, COOKIE_OPTIONS)
+  res.cookie(REFRESH_TOKEN, session.refreshToken, COOKIE_OPTIONS)
 
-  delete tokens.refreshToken
+  res.json({
+    status: 200,
+    message: 'Login completed',
+    data: {
+      accessToken: session.accessToken
+    }
+  })
 
-  res.status(200).json(tokens)
+  // delete tokens.refreshToken
+
+  // res.status(200).json(tokens)
 }
 
 const logout = async (req, res) => {
-  const { refreshToken } = req.cookies
+  try {
+    const { refreshToken } = req.cookies
+    if (!refreshToken) {
+      return res.status(400).json({ message: 'Refresh token not provided' })
+    }
+    const deleted = await authService.logout(refreshToken)
 
-  await authService.logout(refreshToken)
+    if (!deleted) {
+      return res.status(401).json({ message: 'Invalid refresh token' })
+    }
 
-  res.clearCookie(REFRESH_TOKEN)
-  res.clearCookie(ACCESS_TOKEN)
+    res.clearCookie('refreshToken')
+    res.clearCookie('accessToken')
 
-  res.status(204).end()
+    return res.status(200).json({ message: 'Logout successful' })
+  } catch (error) {
+    console.error('Logout error:', error)
+    return res.status(500).json({ message: 'Logout failed' })
+  }
 }
 
 const refreshAccessToken = async (req, res) => {
@@ -59,8 +79,8 @@ const refreshAccessToken = async (req, res) => {
 
   const tokens = await authService.refreshAccessToken(refreshToken)
 
-  res.cookie(ACCESS_TOKEN, tokens.accessToken, COOKIE_OPTIONS)
-  res.cookie(REFRESH_TOKEN, tokens.refreshToken, COOKIE_OPTIONS)
+  // res.cookie(ACCESS_TOKEN, tokens.accessToken, COOKIE_OPTIONS)
+  // res.cookie(REFRESH_TOKEN, tokens.refreshToken, COOKIE_OPTIONS)
 
   delete tokens.refreshToken
 

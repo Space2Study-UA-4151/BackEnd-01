@@ -2,11 +2,12 @@ const bcrypt = require('bcrypt')
 const tokenService = require('~/services/token')
 const emailService = require('~/services/email')
 const UserModel = require('~/models/user')
+const SessionModel = require('~/models/session')
 const { getUserByEmail, privateUpdateUser, getUserById } = require('~/services/user')
 const { createError } = require('~/utils/errorsHelper')
 const {
-  EMAIL_NOT_CONFIRMED,
-  INCORRECT_CREDENTIALS,
+  //   EMAIL_NOT_CONFIRMED,
+  //   INCORRECT_CREDENTIALS,
   BAD_RESET_TOKEN,
   BAD_REFRESH_TOKEN,
   USER_NOT_FOUND
@@ -33,35 +34,49 @@ const authService = {
     }
   },
 
-  login: async (email, password, isFromGoogle) => {
-    const user = await getUserByEmail(email)
-
+  login: async (email, password) => {
+    // const user = await getUserByEmail(email)
+    const user = await UserModel.findOne({ email }).select('+password')
     if (!user) {
-      throw createError(401, USER_NOT_FOUND)
+      throw createError(404, 'User not found')
     }
+    console.log('Compare:', password, user && user.password)
 
-    const checkedPassword = password === user.password || isFromGoogle
-
-    if (!checkedPassword) {
-      throw createError(401, INCORRECT_CREDENTIALS)
+    const areEqualPassword = await bcrypt.compare(password, user.password)
+    if (!areEqualPassword) {
+      throw createError(401, 'Credentials are wrong')
     }
+    const payload = { id: user._id, role: user.role }
+    const { accessToken, refreshToken } = tokenService.generateTokens(payload)
 
-    const { _id, lastLoginAs, isFirstLogin, isEmailConfirmed } = user
+    return SessionModel.create({
+      userId: user._id,
+      accessToken,
+      refreshToken,
+      accessTokenValidUntil: new Date(Date.now() + 15 * 60 * 1000),
+      refreshTokenValidUntil: new Date(Date.now() + 24 * 60 * 60 * 1000)
+    })
 
-    if (!isEmailConfirmed) {
-      throw createError(401, EMAIL_NOT_CONFIRMED)
-    }
+    // const checkedPassword = password === user.password || isFromGoogle
 
-    const tokens = tokenService.generateTokens({ id: _id, role: lastLoginAs, isFirstLogin })
-    await tokenService.saveToken(_id, tokens.refreshToken, REFRESH_TOKEN)
+    // if (!checkedPassword) {
+    //   throw createError(401, INCORRECT_CREDENTIALS)
+    // }
 
-    if (isFirstLogin) {
-      await privateUpdateUser(_id, { isFirstLogin: false })
-    }
+    // const { _id, lastLoginAs, isFirstLogin, isEmailConfirmed } = user
 
-    await privateUpdateUser(_id, { lastLogin: new Date() })
+    // if (!isEmailConfirmed) {
+    //   throw createError(401, EMAIL_NOT_CONFIRMED)
+    // }
 
-    return tokens
+    // const tokens = tokenService.generateTokens({ id: _id, role: lastLoginAs, isFirstLogin })
+    // await tokenService.saveToken(_id, tokens.refreshToken, REFRESH_TOKEN)
+
+    // if (isFirstLogin) {
+    //   await privateUpdateUser(_id, { isFirstLogin: false })
+    // }
+
+    // await privateUpdateUser(_id, { lastLogin: new Date() })
   },
 
   logout: async (refreshToken) => {
