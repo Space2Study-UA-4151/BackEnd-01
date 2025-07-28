@@ -9,6 +9,7 @@ const getUniqueFields = require('~/utils/getUniqueFields')
 
 const errorMiddleware = (err, _req, res, _next) => {
   const { name, status, code, message } = err
+  const httpStatus = status || code || 500
   logger.error(err)
 
   const dataErrors = {
@@ -47,10 +48,10 @@ const errorMiddleware = (err, _req, res, _next) => {
     })
   }
 
-  res.status(Number(err.status) || 500).json({
-    status: Number(err.status) || 500,
-    code: err.code || 'INTERNAL_SERVER_ERROR',
-    message: err.message || 'Server error'
+
+  return res.status(httpStatus).json({
+    status: httpStatus,
+    message: message || 'Internal Server Error'
   })
 }
 
