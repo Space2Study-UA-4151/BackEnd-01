@@ -51,6 +51,9 @@ const userSchema = new Schema(
       country: { type: String },
       city: { type: String }
     },
+    activationLink: {
+      type: String
+    },
     photo: String,
     professionalSummary: String,
     mainSubjects: {
