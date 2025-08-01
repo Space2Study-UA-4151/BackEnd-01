@@ -1,4 +1,5 @@
 const bcrypt = require('bcrypt')
+
 const { v4: uuidv4 } = require('uuid')
 const tokenService = require('~/services/token')
 const emailService = require('~/services/email')
@@ -34,6 +35,7 @@ const authService = {
       language,
       activationLink
     })
+
     const confirmToken = tokenService.generateConfirmToken({ id: user._id, role })
     await tokenService.saveToken(user._id, confirmToken, CONFIRM_TOKEN)
     // await emailService.sendEmail(email, emailSubject.EMAIL_CONFIRMATION, language, { confirmToken, email, firstName })
@@ -65,6 +67,16 @@ const authService = {
       refreshToken,
       id: user._id
     }
+    const payload = { id: user._id, role: user.role }
+    const { accessToken, refreshToken } = tokenService.generateTokens(payload)
+
+    return SessionModel.create({
+      userId: user._id,
+      accessToken,
+      refreshToken,
+      accessTokenValidUntil: new Date(Date.now() + 15 * 60 * 1000),
+      refreshTokenValidUntil: new Date(Date.now() + 24 * 60 * 60 * 1000)
+    })
 
     // const checkedPassword = password === user.password || isFromGoogle
 
