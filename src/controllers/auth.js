@@ -40,12 +40,17 @@ const login = async (req, res) => {
       accessToken: session.accessToken
     }
   })
+
+  // delete tokens.refreshToken
+
+  // res.status(200).json(tokens)
 }
 
 const logout = async (req, res) => {
   try {
     res.clearCookie('refreshToken', COOKIE_OPTIONS)
     res.clearCookie('accessToken', COOKIE_OPTIONS)
+
     const { refreshToken } = req.cookies
     if (!refreshToken) {
       return res.status(400).json({ message: 'Refresh token not provided' })
