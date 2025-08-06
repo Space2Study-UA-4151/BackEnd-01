@@ -8,6 +8,7 @@ const adminInvitation = require('~/routes/adminInvitation')
 const question = require('~/routes/question')
 const resourcesCategory = require('~/routes/resourcesCategory')
 const offer = require('~/routes/offer')
+const languages = require('~/routes/languages')
 
 router.use('/auth', auth)
 router.use('/users', authMiddleware, user)
@@ -19,5 +20,6 @@ router.use('/admin-invitations', authMiddleware, restrictTo('admin'), adminInvit
 router.use('/questions', authMiddleware, question)
 router.use('/resources-categories', authMiddleware, resourcesCategory)
 router.use('/offers', authMiddleware, offer)
+router.use('/languages', languages)
 
 module.exports = router
