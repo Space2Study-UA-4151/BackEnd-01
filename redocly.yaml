@@ -1,0 +1,18 @@
+extends:
+  - recommended
+
+apis:
+  core@v2:
+    root: ./docs/openapi.yaml
+    rules:
+      no-ambiguous-paths: error
+
+theme:
+  openapi:
+    htmlTemplate: ./docs/index.html
+    schemaExpansionLevel: 2
+    generateCodeSamples:
+      languages:
+        - lang: curl
+        - lang: Node.js
+        - lang: JavaScript

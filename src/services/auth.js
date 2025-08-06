@@ -1,10 +1,11 @@
 const bcrypt = require('bcrypt')
+
+const { v4: uuidv4 } = require('uuid')
 const tokenService = require('~/services/token')
 const emailService = require('~/services/email')
 const UserModel = require('~/models/user')
-const SessionModel = require('~/models/session')
 const { getUserByEmail, privateUpdateUser, getUserById } = require('~/services/user')
-const { createError } = require('~/utils/errorsHelper')
+const { createError, createUnauthorizedError } = require('~/utils/errorsHelper')
 const {
   //   EMAIL_NOT_CONFIRMED,
   //   INCORRECT_CREDENTIALS,
@@ -24,7 +25,17 @@ const authService = {
       throw createError(409, 'Email in use')
     }
     const hashedPassword = await bcrypt.hash(password, 10)
-    const user = UserModel.create({ role, firstName, lastName, email, password: hashedPassword, language })
+    const activationLink = uuidv4()
+    const user = UserModel.create({
+      role,
+      firstName,
+      lastName,
+      email,
+      password: hashedPassword,
+      language,
+      activationLink
+    })
+
     const confirmToken = tokenService.generateConfirmToken({ id: user._id, role })
     await tokenService.saveToken(user._id, confirmToken, CONFIRM_TOKEN)
     // await emailService.sendEmail(email, emailSubject.EMAIL_CONFIRMATION, language, { confirmToken, email, firstName })
@@ -36,26 +47,34 @@ const authService = {
 
   login: async (email, password) => {
     // const user = await getUserByEmail(email)
-    const user = await UserModel.findOne({ email }).select('+password')
+    const user = await UserModel.findOne({ email }).select('+password +isFirstLogin +firstName +lastName')
     if (!user) {
-      throw createError(404, 'User not found')
+      throw createUnauthorizedError()
     }
     console.log('Compare:', password, user && user.password)
 
     const areEqualPassword = await bcrypt.compare(password, user.password)
     if (!areEqualPassword) {
-      throw createError(401, 'Credentials are wrong')
-    }
-    const payload = { id: user._id, role: user.role }
-    const { accessToken, refreshToken } = tokenService.generateTokens(payload)
+      throw createUnauthorizedError()
 
-    return SessionModel.create({
-      userId: user._id,
+    }
+    const payload = {
+      id: user._id,
+      role: user.role,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      isFirstLogin: user.isFirstLogin
+
+    }
+    const { accessToken, refreshToken } = tokenService.generateTokens(payload)
+    await tokenService.saveToken(payload.id, refreshToken, REFRESH_TOKEN)
+    console.log('user.role:', user.role, Array.isArray(user.role))
+
+    return {
       accessToken,
       refreshToken,
-      accessTokenValidUntil: new Date(Date.now() + 15 * 60 * 1000),
-      refreshTokenValidUntil: new Date(Date.now() + 24 * 60 * 60 * 1000)
-    })
+      id: user._id
+    }
 
     // const checkedPassword = password === user.password || isFromGoogle
 

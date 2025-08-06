@@ -1,19 +1,19 @@
 const authService = require('~/services/auth')
 
 const { oneDayInMs } = require('~/consts/auth')
-const {
-  config: { COOKIE_DOMAIN }
-} = require('~/configs/config')
+// const {
+//   config: { COOKIE_DOMAIN }
+// } = require('~/configs/config')
 const {
   tokenNames: { REFRESH_TOKEN, ACCESS_TOKEN }
 } = require('~/consts/auth')
 
 const COOKIE_OPTIONS = {
   maxAge: oneDayInMs,
-  // httpOnly: true,
-  secure: true,
-  sameSite: 'none',
-  domain: COOKIE_DOMAIN
+  httpOnly: true,
+  secure: false,
+  sameSite: 'none'
+  // domain: COOKIE_DOMAIN
 }
 
 const signup = async (req, res) => {
@@ -48,6 +48,9 @@ const login = async (req, res) => {
 
 const logout = async (req, res) => {
   try {
+    res.clearCookie('refreshToken', COOKIE_OPTIONS)
+    res.clearCookie('accessToken', COOKIE_OPTIONS)
+
     const { refreshToken } = req.cookies
     if (!refreshToken) {
       return res.status(400).json({ message: 'Refresh token not provided' })
@@ -57,9 +60,6 @@ const logout = async (req, res) => {
     if (!deleted) {
       return res.status(401).json({ message: 'Invalid refresh token' })
     }
-
-    res.clearCookie('refreshToken')
-    res.clearCookie('accessToken')
 
     return res.status(200).json({ message: 'Logout successful' })
   } catch (error) {
