@@ -45,7 +45,7 @@ const authService = {
 
   login: async (email, password) => {
     // const user = await getUserByEmail(email)
-    const user = await UserModel.findOne({ email }).select('+password')
+    const user = await UserModel.findOne({ email }).select('+password +isFirstLogin +firstName +lastName')
     if (!user) {
       throw createUnauthorizedError()
     }
@@ -55,7 +55,13 @@ const authService = {
     if (!areEqualPassword) {
       throw createUnauthorizedError()
     }
-    const payload = { id: user._id, role: user.role }
+    const payload = {
+      id: user._id,
+      role: user.role,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      isFirstLogin: user.isFirstLogin
+    }
     const { accessToken, refreshToken } = tokenService.generateTokens(payload)
     await tokenService.saveToken(payload.id, refreshToken, REFRESH_TOKEN)
     console.log('user.role:', user.role, Array.isArray(user.role))
