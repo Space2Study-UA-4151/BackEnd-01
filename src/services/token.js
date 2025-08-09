@@ -106,7 +106,7 @@ const tokenService = {
   },
 
   removeRefreshToken: async (refreshToken) => {
-    await Token.deleteOne({ refreshToken })
+    return await Token.deleteOne({ refreshToken })
   },
 
   removeResetToken: async (userId) => {
