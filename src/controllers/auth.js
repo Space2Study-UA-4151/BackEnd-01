@@ -11,7 +11,7 @@ const {
 const COOKIE_OPTIONS = {
   maxAge: oneDayInMs,
   httpOnly: true,
-  secure: false,
+  secure: true,
   sameSite: 'none'
   // domain: COOKIE_DOMAIN
 }
@@ -36,9 +36,7 @@ const login = async (req, res) => {
   res.json({
     status: 200,
     message: 'Login completed',
-    data: {
-      accessToken: session.accessToken
-    }
+    accessToken: session.accessToken
   })
 
   // delete tokens.refreshToken

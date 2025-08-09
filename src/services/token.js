@@ -48,6 +48,7 @@ const tokenService = {
     try {
       return jwt.verify(token, secret)
     } catch (e) {
+      console.log('Token validation error:', e.message)
       return null
     }
   },

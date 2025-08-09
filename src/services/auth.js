@@ -56,18 +56,16 @@ const authService = {
     const areEqualPassword = await bcrypt.compare(password, user.password)
     if (!areEqualPassword) {
       throw createUnauthorizedError()
-
     }
     const payload = {
-      id: user._id,
+      _id: user._id,
       role: user.role,
       firstName: user.firstName,
       lastName: user.lastName,
       isFirstLogin: user.isFirstLogin
-
     }
     const { accessToken, refreshToken } = tokenService.generateTokens(payload)
-    await tokenService.saveToken(payload.id, refreshToken, REFRESH_TOKEN)
+    await tokenService.saveToken(payload._id, refreshToken, REFRESH_TOKEN)
     console.log('user.role:', user.role, Array.isArray(user.role))
 
     return {
@@ -105,14 +103,14 @@ const authService = {
   refreshAccessToken: async (refreshToken) => {
     const tokenData = tokenService.validateRefreshToken(refreshToken)
     const tokenFromDB = await tokenService.findToken(refreshToken, REFRESH_TOKEN)
-
+    console.log('Token data', tokenData, 'Token from DB', tokenFromDB)
     if (!tokenData || !tokenFromDB) {
       throw createError(400, BAD_REFRESH_TOKEN)
     }
 
-    const { _id, lastLoginAs, isFirstLogin } = await getUserById(tokenData.id)
+    const { _id, role, isFirstLogin, firstName, lastName } = await getUserById(tokenData._id)
 
-    const tokens = tokenService.generateTokens({ id: _id, role: lastLoginAs, isFirstLogin })
+    const tokens = tokenService.generateTokens({ _id, role, isFirstLogin, firstName, lastName })
     await tokenService.saveToken(_id, tokens.refreshToken, REFRESH_TOKEN)
 
     return tokens
