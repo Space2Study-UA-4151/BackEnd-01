@@ -77,8 +77,8 @@ const refreshAccessToken = async (req, res) => {
 
   const tokens = await authService.refreshAccessToken(refreshToken)
 
-  // res.cookie(ACCESS_TOKEN, tokens.accessToken, COOKIE_OPTIONS)
-  // res.cookie(REFRESH_TOKEN, tokens.refreshToken, COOKIE_OPTIONS)
+  res.cookie(ACCESS_TOKEN, tokens.accessToken, COOKIE_OPTIONS)
+  res.cookie(REFRESH_TOKEN, tokens.refreshToken, COOKIE_OPTIONS)
 
   delete tokens.refreshToken
 
