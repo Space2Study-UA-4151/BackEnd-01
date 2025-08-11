@@ -56,7 +56,6 @@ const authService = {
     const areEqualPassword = await bcrypt.compare(password, user.password)
     if (!areEqualPassword) {
       throw createUnauthorizedError()
-
     }
     const payload = {
       id: user._id,
@@ -64,7 +63,6 @@ const authService = {
       firstName: user.firstName,
       lastName: user.lastName,
       isFirstLogin: user.isFirstLogin
-
     }
     const { accessToken, refreshToken } = tokenService.generateTokens(payload)
     await tokenService.saveToken(payload.id, refreshToken, REFRESH_TOKEN)
@@ -99,7 +97,8 @@ const authService = {
   },
 
   logout: async (refreshToken) => {
-    await tokenService.removeRefreshToken(refreshToken)
+    const result = await tokenService.removeRefreshToken(refreshToken)
+    return result.deleteCount > 0
   },
 
   refreshAccessToken: async (refreshToken) => {
