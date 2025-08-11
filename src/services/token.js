@@ -95,6 +95,7 @@ const tokenService = {
 
     try {
       const token = await Token.find({ [tokenName]: tokenValue }).exec()
+      console.log('Token value', tokenValue, 'Token name', tokenName, 'Found token:', token)
       return token[0]
     } catch (error) {
       return null

@@ -11,7 +11,7 @@ const {
 const COOKIE_OPTIONS = {
   maxAge: oneDayInMs,
   httpOnly: true,
-  secure: false,
+  secure: true,
   sameSite: 'none'
   // domain: COOKIE_DOMAIN
 }
@@ -36,9 +36,7 @@ const login = async (req, res) => {
   res.json({
     status: 200,
     message: 'Login completed',
-    data: {
-      accessToken: session.accessToken
-    }
+    accessToken: session.accessToken
   })
 
   // delete tokens.refreshToken
@@ -79,8 +77,8 @@ const refreshAccessToken = async (req, res) => {
 
   const tokens = await authService.refreshAccessToken(refreshToken)
 
-  // res.cookie(ACCESS_TOKEN, tokens.accessToken, COOKIE_OPTIONS)
-  // res.cookie(REFRESH_TOKEN, tokens.refreshToken, COOKIE_OPTIONS)
+  res.cookie(ACCESS_TOKEN, tokens.accessToken, COOKIE_OPTIONS)
+  res.cookie(REFRESH_TOKEN, tokens.refreshToken, COOKIE_OPTIONS)
 
   delete tokens.refreshToken
 
