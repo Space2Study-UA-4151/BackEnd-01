@@ -103,7 +103,6 @@ const authService = {
   refreshAccessToken: async (refreshToken) => {
     const tokenData = tokenService.validateRefreshToken(refreshToken)
     const tokenFromDB = await tokenService.findToken(refreshToken, REFRESH_TOKEN)
-    console.log('Token data', tokenData, 'Token from DB', tokenFromDB)
     if (!tokenData || !tokenFromDB) {
       throw createError(400, BAD_REFRESH_TOKEN)
     }
