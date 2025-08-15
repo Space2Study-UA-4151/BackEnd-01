@@ -1,6 +1,7 @@
 const userService = require('~/services/user')
 const { createForbiddenError } = require('~/utils/errorsHelper')
 const createAggregateOptions = require('~/utils/users/createAggregateOptions')
+const { MAX_FILE_SIZE } = require('../consts/upload')
 
 const getUsers = async (req, res) => {
   const { skip, limit, sort, match } = createAggregateOptions(req.query)
@@ -32,7 +33,7 @@ const updateUser = async (req, res) => {
     return res.status(400).send('Only PNG/JPEG files are allowed.')
   }
 
-  if (size > 10 * 1024 * 1024) {
+  if (size > MAX_FILE_SIZE) {
     return res.status(400).send('File is too large.')
   }
 
