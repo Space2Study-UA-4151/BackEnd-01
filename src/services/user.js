@@ -1,5 +1,6 @@
 const User = require('~/models/user')
 const { createError } = require('~/utils/errorsHelper')
+const cloudinary = require('cloudinary').v2
 
 const { DOCUMENT_NOT_FOUND, ALREADY_REGISTERED } = require('~/consts/errors')
 const filterAllowedFields = require('~/utils/filterAllowedFields')
@@ -70,18 +71,36 @@ const userService = {
     }
   },
 
-  updateUser: async (id, role, updateData) => {
+  updateUser: async (id, role, updateData, avatar) => {
     const filteredUpdateData = filterAllowedFields(updateData, allowedUserFieldsForUpdate)
 
-    const user = await User.findById(id).lean().exec()
+    const user = await User.findById(id).exec()
 
     if (!user) {
       throw createError(404, DOCUMENT_NOT_FOUND([User.modelName]))
     }
 
-    filteredUpdateData.mainSubjects = { ...user.mainSubjects, [role]: updateData.mainSubjects }
+    filteredUpdateData.mainSubjects = {
+      ...(user.mainSubjects || {}),
+      [role]: updateData.mainSubjects
+    }
 
-    await User.findByIdAndUpdate(id, filteredUpdateData, { new: true, runValidators: true }).lean().exec()
+    if (user.avatar?.public_id) {
+      try {
+        await cloudinary.uploader.destroy(user.avatar.public_id)
+      } catch (err) {
+        console.error('Failed to delete previous avatar from Cloudinary:', err)
+      }
+    }
+
+    if (avatar) {
+      filteredUpdateData.avatar = avatar
+    }
+
+    await User.findByIdAndUpdate(id, filteredUpdateData, {
+      new: true,
+      runValidators: true
+    }).exec()
   },
 
   updateStatus: async (id, updateStatus) => {

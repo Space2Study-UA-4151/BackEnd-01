@@ -54,7 +54,12 @@ const userSchema = new Schema(
     activationLink: {
       type: String
     },
-    photo: String,
+    avatar: {
+      url: String,
+      public_id: String,
+      mimetype: String,
+      size: Number
+    },
     professionalSummary: String,
     mainSubjects: {
       student: {
