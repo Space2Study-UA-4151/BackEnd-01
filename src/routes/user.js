@@ -7,6 +7,7 @@ const isEntityValid = require('~/middlewares/entityValidation')
 
 const userController = require('~/controllers/user')
 const User = require('~/models/user')
+const upload = require('../middlewares/multer')
 // const {
 //   roles: { ADMIN }
 // } = require('~/consts/auth')
@@ -18,8 +19,9 @@ router.use(authMiddleware)
 router.param('id', idValidation)
 
 router.get('/', asyncWrapper(userController.getUsers))
+
 router.get('/:id', isEntityValid({ params }), asyncWrapper(userController.getUserById))
-router.patch('/:id', isEntityValid({ params }), asyncWrapper(userController.updateUser))
+router.patch('/:id', upload.single('photo'), isEntityValid({ params }), asyncWrapper(userController.updateUser))
 
 // router.use(restrictTo(ADMIN))
 router.patch('/:id/change-status', isEntityValid({ params }), asyncWrapper(userController.updateStatus))

@@ -1,6 +1,7 @@
 const express = require('express')
 const cors = require('cors')
 const cookieParser = require('cookie-parser')
+const path = require('node:path')
 
 const {
   config: { CLIENT_URL }
@@ -13,6 +14,8 @@ const initialization = (app) => {
   app.use(express.json({ limit: '10mb' }))
   app.use(express.urlencoded({ extended: true }))
   app.use(cookieParser())
+  app.use('/avatars', express.static(path.join(__dirname, '..', 'uploads', 'avatars')))
+
   app.use(
     cors({
       origin: CLIENT_URL,

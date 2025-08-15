@@ -1,6 +1,7 @@
 const userService = require('~/services/user')
 const { createForbiddenError } = require('~/utils/errorsHelper')
 const createAggregateOptions = require('~/utils/users/createAggregateOptions')
+const { MAX_FILE_SIZE } = require('../consts/upload')
 
 const getUsers = async (req, res) => {
   const { skip, limit, sort, match } = createAggregateOptions(req.query)
@@ -20,15 +21,38 @@ const getUserById = async (req, res) => {
 }
 
 const updateUser = async (req, res) => {
+  const file = req.file
+
+  if (!file) {
+    return res.status(400).send('No file uploaded.')
+  }
+
+  const { originalname, mimetype, size, path, filename } = file
+
+  if (!['image/png', 'image/jpeg', 'image/jpg'].includes(mimetype)) {
+    return res.status(400).send('Only PNG/JPEG files are allowed.')
+  }
+
+  if (size > MAX_FILE_SIZE) {
+    return res.status(400).send('File is too large.')
+  }
+
+  const avatar = {
+    url: path,
+    public_id: filename,
+    mimetype,
+    size
+  }
+
   const { id } = req.params
   const { role } = req.user
   const updateData = req.body
 
   if (id !== req.user.id) throw createForbiddenError()
 
-  await userService.updateUser(id, role, updateData)
+  await userService.updateUser(id, role, updateData, avatar)
 
-  res.status(204).end()
+  return res.status(200).json({ message: `File ${originalname} uploaded successfully!`, avatar })
 }
 
 const updateStatus = async (req, res) => {
